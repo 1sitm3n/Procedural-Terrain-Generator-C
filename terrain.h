@@ -1,7 +1,4 @@
-/* terrain.h
- *
- * Terrain heightmap generation using Perlin noise and OpenMP.
- */
+// Terrain heightmap generation using Perlin noise and OpenMP.
 
 #ifndef TERRAIN_H
 #define TERRAIN_H
