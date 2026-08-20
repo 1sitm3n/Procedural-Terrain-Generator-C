@@ -8,14 +8,14 @@
 #include "terrain.h"
 #include "noise.h"
 
-static float fbm2d(float x, float y, int octaves, float lacunarity, float gain) {
+static float fbm2d(noise_type_t noise, float x, float y, int octaves, float lacunarity, float gain) {
     float amplitude = 1.0f;
     float frequency = 1.0f;
     float sum = 0.0f;
     float max_sum = 0.0f;
 
     for (int i = 0; i < octaves; ++i) {
-        sum += perlin2d(x * frequency, y * frequency) * amplitude;
+        sum += noise2d(noise, x * frequency, y * frequency) * amplitude;
         max_sum += amplitude;
         amplitude *= gain;
         frequency *= lacunarity;
@@ -43,6 +43,7 @@ void generate_heightmap(float *heightmap,
                         int num_threads,
                         schedule_mode_t mode,
                         int chunk_size,
+                        noise_type_t noise,
                         double *out_time) {
 
     if (scale <= 0.0f) {
@@ -74,7 +75,7 @@ void generate_heightmap(float *heightmap,
             float sx = fx * scale;
             float sy = fy * scale;
 
-            float value = fbm2d(sx, sy, octaves, lacunarity, gain);
+            float value = fbm2d(noise, sx, sy, octaves, lacunarity, gain);
             heightmap[y * width + x] = value;
         }
     }

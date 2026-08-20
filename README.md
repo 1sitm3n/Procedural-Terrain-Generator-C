@@ -1,9 +1,14 @@
 # Procedural Terrain Generator (C, Perlin Noise, OpenMP)
 
-This project generates large terrain heightmaps using 2D Perlin noise and parallel processing with OpenMP. It showcases:
+This project generates terrain heightmaps using 2D Perlin or simplex noise and parallel processing with OpenMP. It showcases:
 
+- Two noise functions on the same permutation table — classic Perlin, and
+  simplex, which skews onto a triangular lattice so it needs three corners
+  instead of four and has no axis-aligned directional bias
 - Parallelising mathematical operations on large arrays
-- Cache-friendly memory access (row-major traversal)
+- Row ownership: each thread writes whole rows, so two threads never share a
+  cache line. That is the useful property, rather than the traversal order
+  itself being clever
 - File I/O optimisation via buffered binary writes
 - Parallel efficiency comparison between **static** and **dynamic** OpenMP scheduling
 
@@ -46,3 +51,19 @@ Noise evaluation uses multi-octave fractional Brownian motion built on top of 2D
 In the repo:
 make
 ./terrain_generator 1024 1024 8 8.0 6 64 (system friendly example)
+
+## Noise selection
+
+```bash
+./terrain_generator 2048 2048 8 8 6 64 --noise simplex
+./terrain_generator 2048 2048 8 8 6 64 --noise perlin    # default
+```
+
+## Scope
+
+2048x2048 floats is 16 MB and 4096x4096 is 64 MB — both fit in RAM comfortably
+and finish well under a second. This is a parallelism and noise exercise, not an
+out-of-core terrain system, and the static-vs-dynamic scheduling comparison is
+an experiment rather than a general result: the work per row is uniform here, so
+dynamic scheduling has nothing to rebalance and mostly measures its own
+overhead.

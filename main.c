@@ -3,7 +3,7 @@
  * Procedural Terrain Generator (Noise + Parallelisation)
  *
  * Usage:
- *   ./terrain_generator [width] [height] [threads] [scale] [octaves] [chunk_size]
+ *   ./terrain_generator [width] [height] [threads] [scale] [octaves] [chunk_size] [--noise perlin|simplex]
  *
  * Example:
  *   ./terrain_generator 4096 4096 8 8.0 6 64
@@ -20,7 +20,13 @@
 #include <time.h>
 #include "terrain.h"
 #include "noise.h"
+#include <string.h>
 #include "io.h"
+
+static noise_type_t parse_noise(const char *s) {
+    if (s && (strcmp(s, "simplex") == 0)) return NOISE_SIMPLEX;
+    return NOISE_PERLIN;
+}
 
 int main(int argc, char **argv) {
     int width      = 2048;
@@ -28,7 +34,15 @@ int main(int argc, char **argv) {
     int threads    = 8;
     float scale    = 8.0f;
     int octaves    = 6;
+    noise_type_t noise = NOISE_PERLIN;
     int chunk_size = 64;
+
+    /* --noise can appear anywhere; the positional args stay as they were. */
+    for (int i = 1; i < argc; ++i) {
+        if (strcmp(argv[i], "--noise") == 0 && i + 1 < argc) {
+            noise = parse_noise(argv[i + 1]);
+        }
+    }
 
     if (argc >= 3) {
         width = atoi(argv[1]);
@@ -57,6 +71,7 @@ int main(int argc, char **argv) {
     printf("Threads    : %d\n", threads);
     printf("Scale      : %.2f\n", scale);
     printf("Octaves    : %d\n", octaves);
+    printf("Noise      : %s\n", noise == NOISE_SIMPLEX ? "simplex" : "perlin");
     printf("Chunk size : %d\n\n", chunk_size);
 
     float *heightmap_static = (float *)malloc((size_t)width * (size_t)height * sizeof(float));
@@ -86,6 +101,7 @@ int main(int argc, char **argv) {
                        threads,
                        SCHED_STATIC,
                        chunk_size,
+                       noise,
                        &t_static);
     printf("STATIC done in %.6f seconds.\n", t_static);
 
@@ -107,6 +123,7 @@ int main(int argc, char **argv) {
                        threads,
                        SCHED_DYNAMIC,
                        chunk_size,
+                       noise,
                        &t_dynamic);
     printf("DYNAMIC done in %.6f seconds.\n", t_dynamic);
 

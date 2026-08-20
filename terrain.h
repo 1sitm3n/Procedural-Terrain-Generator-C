@@ -1,7 +1,9 @@
-// Terrain heightmap generation using Perlin noise and OpenMP.
+// Terrain heightmap generation using Perlin or simplex noise and OpenMP.
 
 #ifndef TERRAIN_H
 #define TERRAIN_H
+
+#include "noise.h"
 
 typedef enum {
     SCHED_STATIC = 0,
@@ -29,6 +31,7 @@ void generate_heightmap(float *heightmap,
                         int num_threads,
                         schedule_mode_t mode,
                         int chunk_size,
+                        noise_type_t noise,
                         double *out_time);
 
 #endif /* TERRAIN_H */
